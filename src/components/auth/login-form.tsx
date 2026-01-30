@@ -1,8 +1,8 @@
 'use client'
 
 import { useForm } from '@tanstack/react-form'
-import { valibotValidator } from '@tanstack/valibot-form-adapter'
 import { useState } from 'react'
+import * as v from 'valibot'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { type LoginInput, LoginSchema } from '@/lib/validations/auth'
@@ -17,6 +17,23 @@ export function LoginForm() {
 			email: '',
 			password: '',
 		} as LoginInput,
+		validators: {
+			onChange: ({ value }) => {
+				const result = v.safeParse(LoginSchema, value)
+				if (result.success) return undefined
+				// Extract error messages from Valibot issues
+				const errorMap: Record<string, string> = {}
+				if (result.issues) {
+					for (const issue of result.issues) {
+						const path = issue.path?.[0]?.key as string
+						if (path && !errorMap[path]) {
+							errorMap[path] = issue.message
+						}
+					}
+				}
+				return errorMap
+			},
+		},
 		onSubmit: async ({ value }) => {
 			setError(null)
 			setIsLoading(true)
@@ -28,7 +45,6 @@ export function LoginForm() {
 				setIsLoading(false)
 			}
 		},
-		validatorAdapter: valibotValidator(),
 	})
 
 	return (
@@ -46,12 +62,7 @@ export function LoginForm() {
 				}}
 				className="space-y-4"
 			>
-				<form.Field
-					name="email"
-					validators={{
-						onChange: LoginSchema.entries.email,
-					}}
-				>
+				<form.Field name="email">
 					{field => (
 						<div className="space-y-2">
 							<label htmlFor={field.name} className="text-sm font-medium">
@@ -68,18 +79,18 @@ export function LoginForm() {
 								placeholder="you@example.com"
 							/>
 							{field.state.meta.errors.length > 0 && (
-								<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+								<p className="text-sm text-destructive">
+									{typeof field.state.meta.errors[0] === 'string'
+										? field.state.meta.errors[0]
+										: (field.state.meta.errors[0] as unknown as { message?: string })?.message ||
+											String(field.state.meta.errors[0])}
+								</p>
 							)}
 						</div>
 					)}
 				</form.Field>
 
-				<form.Field
-					name="password"
-					validators={{
-						onChange: LoginSchema.entries.password,
-					}}
-				>
+				<form.Field name="password">
 					{field => (
 						<div className="space-y-2">
 							<label htmlFor={field.name} className="text-sm font-medium">
@@ -96,7 +107,12 @@ export function LoginForm() {
 								placeholder="••••••••"
 							/>
 							{field.state.meta.errors.length > 0 && (
-								<p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+								<p className="text-sm text-destructive">
+									{typeof field.state.meta.errors[0] === 'string'
+										? field.state.meta.errors[0]
+										: (field.state.meta.errors[0] as unknown as { message?: string })?.message ||
+											String(field.state.meta.errors[0])}
+								</p>
 							)}
 						</div>
 					)}
