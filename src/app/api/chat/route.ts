@@ -7,12 +7,82 @@ const MCP_BASE_URL = process.env.MCP_SERVER_URL || 'https://56ac73dbb9fa.ngrok-f
 const MCP_SSE_URL = `${MCP_BASE_URL}/sse`
 const MCP_MESSAGES_URL = `${MCP_BASE_URL}/messages`
 
-// MCP Session management for SSE transport
-let mcpSessionId: string | null = null
+// MCP Session with persistent SSE connection
+interface MCPSession {
+	sessionId: string
+	reader: ReadableStreamDefaultReader<Uint8Array>
+	decoder: TextDecoder
+	buffer: string
+	pendingRequests: Map<
+		number,
+		{
+			resolve: (value: string) => void
+			reject: (error: Error) => void
+		}
+	>
+	isProcessing: boolean
+}
 
-// Initialize MCP SSE session by connecting to /sse endpoint
-async function initMCPSSESession(): Promise<string> {
-	console.log('[MCP] Initializing SSE session...')
+let mcpSession: MCPSession | null = null
+
+// Process incoming SSE messages and resolve pending requests
+async function processSSEStream(session: MCPSession) {
+	if (session.isProcessing) return
+	session.isProcessing = true
+
+	try {
+		while (true) {
+			const { done, value } = await session.reader.read()
+			if (done) {
+				console.log('[MCP] SSE stream ended')
+				break
+			}
+
+			session.buffer += session.decoder.decode(value, { stream: true })
+			const lines = session.buffer.split('\n')
+			session.buffer = lines.pop() || ''
+
+			for (const line of lines) {
+				if (line.startsWith('data: ')) {
+					const data = line.substring(6).trim()
+					if (!data || data.includes('sessionId=')) continue
+
+					try {
+						const json = JSON.parse(data)
+						console.log('[MCP] SSE received:', JSON.stringify(json).substring(0, 200))
+
+						// Check if this is a response to a pending request
+						if (json.id !== undefined && session.pendingRequests.has(json.id)) {
+							const pending = session.pendingRequests.get(json.id)
+							if (!pending) continue
+							session.pendingRequests.delete(json.id)
+
+							if (json.error) {
+								pending.reject(new Error(json.error.message || 'MCP error'))
+							} else if (json.result?.content?.[0]?.text) {
+								pending.resolve(json.result.content[0].text)
+							} else if (json.result) {
+								pending.resolve(JSON.stringify(json.result))
+							} else {
+								pending.resolve(JSON.stringify(json))
+							}
+						}
+					} catch {
+						// Not JSON, ignore
+					}
+				}
+			}
+		}
+	} catch (error) {
+		console.error('[MCP] SSE processing error:', error)
+	} finally {
+		session.isProcessing = false
+	}
+}
+
+// Initialize MCP SSE session with persistent connection
+async function initMCPSession(): Promise<MCPSession> {
+	console.log('[MCP] Initializing SSE session with persistent connection...')
 
 	const response = await fetch(MCP_SSE_URL, {
 		method: 'GET',
@@ -25,7 +95,6 @@ async function initMCPSSESession(): Promise<string> {
 		throw new Error(`Failed to connect to MCP SSE: ${response.statusText}`)
 	}
 
-	// Read the SSE stream to get the session ID
 	const reader = response.body?.getReader()
 	if (!reader) {
 		throw new Error('Failed to get SSE stream reader')
@@ -35,16 +104,16 @@ async function initMCPSSESession(): Promise<string> {
 	let buffer = ''
 	let sessionId: string | null = null
 
-	// Read until we get the endpoint event with sessionId
+	// Read until we get the session ID
 	while (!sessionId) {
 		const { done, value } = await reader.read()
 		if (done) break
 
 		buffer += decoder.decode(value, { stream: true })
 		const lines = buffer.split('\n')
+		buffer = lines.pop() || ''
 
 		for (const line of lines) {
-			// SSE format: data: /messages?sessionId=XXX
 			if (line.startsWith('data: ') && line.includes('sessionId=')) {
 				const match = line.match(/sessionId=([a-f0-9-]+)/)
 				if (match) {
@@ -56,14 +125,37 @@ async function initMCPSSESession(): Promise<string> {
 		}
 	}
 
-	// Cancel the reader - we just needed the session ID
-	reader.cancel()
-
 	if (!sessionId) {
+		reader.cancel()
 		throw new Error('No session ID received from MCP SSE')
 	}
 
+	// Create session object
+	const session: MCPSession = {
+		sessionId,
+		reader,
+		decoder,
+		buffer,
+		pendingRequests: new Map(),
+		isProcessing: false,
+	}
+
+	// Start processing SSE stream in background (don't await)
+	processSSEStream(session)
+
 	// Send initialize message
+	const initId = Date.now()
+	const initPromise = new Promise<string>((resolve, reject) => {
+		session.pendingRequests.set(initId, { resolve, reject })
+		// Timeout after 10 seconds
+		setTimeout(() => {
+			if (session.pendingRequests.has(initId)) {
+				session.pendingRequests.delete(initId)
+				reject(new Error('Initialize timeout'))
+			}
+		}, 10000)
+	})
+
 	const initResponse = await fetch(`${MCP_MESSAGES_URL}?sessionId=${sessionId}`, {
 		method: 'POST',
 		headers: {
@@ -71,7 +163,7 @@ async function initMCPSSESession(): Promise<string> {
 		},
 		body: JSON.stringify({
 			jsonrpc: '2.0',
-			id: 1,
+			id: initId,
 			method: 'initialize',
 			params: {
 				protocolVersion: '2024-11-05',
@@ -86,113 +178,90 @@ async function initMCPSSESession(): Promise<string> {
 
 	if (!initResponse.ok) {
 		const errorText = await initResponse.text()
-		console.error('[MCP] Initialize failed:', errorText)
+		console.error('[MCP] Initialize POST failed:', errorText)
 		throw new Error(`MCP initialize failed: ${initResponse.statusText}`)
 	}
 
-	console.log('[MCP] Session initialized successfully')
-	return sessionId
+	// Wait for initialize response via SSE
+	try {
+		await initPromise
+		console.log('[MCP] Session initialized successfully')
+	} catch {
+		console.log('[MCP] Initialize response timeout, continuing anyway...')
+	}
+
+	return session
 }
 
 // Get or create MCP session
-async function getMCPSession(): Promise<string> {
-	if (!mcpSessionId) {
-		mcpSessionId = await initMCPSSESession()
+async function getMCPSession(): Promise<MCPSession> {
+	if (!mcpSession) {
+		mcpSession = await initMCPSession()
 	}
-	return mcpSessionId
+	return mcpSession
 }
 
-// Helper to call MCP server via SSE transport
-async function callMCPTool(toolName: string, args: Record<string, unknown>) {
-	try {
-		const sessionId = await getMCPSession()
-		console.log(`[MCP] Calling tool: ${toolName}`, args)
+// Call MCP tool and wait for result via SSE
+async function callMCPTool(toolName: string, args: Record<string, unknown>): Promise<string> {
+	const session = await getMCPSession()
+	const requestId = Date.now()
 
-		const response = await fetch(`${MCP_MESSAGES_URL}?sessionId=${sessionId}`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				jsonrpc: '2.0',
-				id: Date.now(),
-				method: 'tools/call',
-				params: {
-					name: toolName,
-					arguments: args,
-				},
-			}),
-		})
+	console.log(`[MCP] Calling tool: ${toolName}`, args)
 
-		if (!response.ok) {
-			const errorText = await response.text()
-			console.error(`[MCP] Tool call failed: ${response.status}`, errorText)
+	// Create promise to wait for SSE response
+	const resultPromise = new Promise<string>((resolve, reject) => {
+		session.pendingRequests.set(requestId, { resolve, reject })
 
-			// Session might have expired, reset and try again
-			if (response.status === 400 || response.status === 404) {
-				console.log('[MCP] Session expired, reinitializing...')
-				mcpSessionId = null
-				const newSessionId = await getMCPSession()
-
-				const retryResponse = await fetch(`${MCP_MESSAGES_URL}?sessionId=${newSessionId}`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						jsonrpc: '2.0',
-						id: Date.now(),
-						method: 'tools/call',
-						params: {
-							name: toolName,
-							arguments: args,
-						},
-					}),
-				})
-
-				if (!retryResponse.ok) {
-					throw new Error(`MCP call failed after retry: ${retryResponse.statusText}`)
-				}
-
-				const retryText = await retryResponse.text()
-				console.log('[MCP] Retry response:', retryText)
-				return parseToolResponse(retryText)
+		// Timeout after 30 seconds
+		setTimeout(() => {
+			if (session.pendingRequests.has(requestId)) {
+				session.pendingRequests.delete(requestId)
+				reject(new Error(`Tool call timeout: ${toolName}`))
 			}
+		}, 30000)
+	})
 
-			throw new Error(`MCP call failed: ${response.statusText}`)
+	// Send the tool call
+	const response = await fetch(`${MCP_MESSAGES_URL}?sessionId=${session.sessionId}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			id: requestId,
+			method: 'tools/call',
+			params: {
+				name: toolName,
+				arguments: args,
+			},
+		}),
+	})
+
+	if (!response.ok) {
+		const errorText = await response.text()
+		console.error(`[MCP] Tool call POST failed: ${response.status}`, errorText)
+
+		// Session might have expired
+		if (response.status === 400 || response.status === 404) {
+			console.log('[MCP] Session expired, reinitializing...')
+			mcpSession = null
+			session.pendingRequests.delete(requestId)
+			return callMCPTool(toolName, args) // Retry with new session
 		}
 
-		const text = await response.text()
-		console.log('[MCP] Tool response:', text.substring(0, 500))
-		return parseToolResponse(text)
-	} catch (error) {
-		console.error('[MCP] Call error:', error)
-		throw error
-	}
-}
-
-// Parse the tool response - handles both direct JSON and SSE format
-function parseToolResponse(text: string): string {
-	// For SSE transport, the response comes via the SSE stream, not the POST response
-	// The POST just returns "Accepted" or similar
-	// But sometimes it might return JSON directly
-
-	// If it's "Accepted", we need to wait for SSE - but for simplicity, 
-	// let's check if there's actual JSON content
-	if (text === 'Accepted' || text.trim() === '') {
-		return JSON.stringify({ note: 'Request accepted, processing...' })
+		session.pendingRequests.delete(requestId)
+		throw new Error(`MCP call failed: ${response.statusText}`)
 	}
 
+	// Wait for the result via SSE
 	try {
-		// Try to parse as JSON-RPC response
-		const json = JSON.parse(text)
-		if (json.result?.content?.[0]?.text) {
-			return json.result.content[0].text
-		}
-		return JSON.stringify(json.result || json)
-	} catch {
-		// Not JSON, return as-is
-		return text
+		const result = await resultPromise
+		console.log(`[MCP] Tool result received (${toolName}):`, result.substring(0, 500))
+		return result
+	} catch (error) {
+		console.error(`[MCP] Tool call error (${toolName}):`, error)
+		throw error
 	}
 }
 

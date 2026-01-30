@@ -8,7 +8,6 @@ import { FacilitiesTable, type Facility, StatisticsCard } from '@/components/odc
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function ExplorerPage() {
 	const [input, setInput] = useState('')
@@ -142,7 +141,6 @@ export default function ExplorerPage() {
 		}
 	}
 
-
 	return (
 		<div className="flex h-screen flex-col bg-gradient-to-b from-background to-muted/20">
 			{/* Header */}
@@ -198,48 +196,39 @@ export default function ExplorerPage() {
 							</div>
 						</div>
 					) : (
-						<div className="space-y-6">
+						<div className="space-y-4">
 							{messages.map(message => (
-								<div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-									<div
-										className={`max-w-[90%] space-y-3 ${
-											message.role === 'user'
-												? 'rounded-2xl rounded-br-md bg-primary px-4 py-3 text-primary-foreground'
-												: 'w-full'
-										}`}
-									>
-										{message.parts && message.parts.length > 0 ? (
-											message.parts.map((part, index) => {
-												if (part.type === 'text') {
-													return (
-														<p key={index} className={message.role === 'user' ? '' : 'text-sm leading-relaxed'}>
-															{part.text}
-														</p>
-													)
-												}
-
-												// Tool call
-												if (part.type.startsWith('tool-')) {
-													return (
-														<div key={index} className="mt-4">
-															{renderToolResult(part)}
-														</div>
-													)
-												}
-
-												// Show other part types for debugging
-												return (
-													<div key={index} className="text-xs text-muted-foreground">
-														[Part type: {part.type}]
-													</div>
-												)
-											})
-										) : (
-											<p className="text-sm text-muted-foreground italic">
-												{message.role === 'assistant' ? 'Thinking...' : 'Empty message'}
-											</p>
-										)}
+								<div
+									key={message.id}
+									className={`rounded-lg p-4 ${
+										message.role === 'user'
+											? 'ml-auto max-w-[80%] bg-primary text-primary-foreground'
+											: 'mr-auto max-w-full bg-muted'
+									}`}
+								>
+									<div className="mb-2 text-xs font-medium opacity-70">
+										{message.role === 'user' ? 'You' : 'AI Assistant'}
 									</div>
+									{message.parts?.map((part, i) => {
+										if (part.type === 'text' && part.text) {
+											return (
+												<div key={i} className="prose prose-sm dark:prose-invert max-w-none">
+													<pre className="whitespace-pre-wrap font-sans text-sm">{part.text}</pre>
+												</div>
+											)
+										}
+										if (part.type.startsWith('tool-')) {
+											return (
+												<div key={i} className="mt-3 rounded border bg-background p-3">
+													<div className="mb-2 text-xs font-medium text-muted-foreground">
+														Tool: {part.type.replace('tool-', '')}
+													</div>
+													{renderToolResult(part)}
+												</div>
+											)
+										}
+										return null
+									})}
 								</div>
 							))}
 							<div ref={messagesEndRef} />
