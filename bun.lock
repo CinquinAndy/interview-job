@@ -8,7 +8,7 @@
         "@ai-sdk/anthropic": "3.0.66",
         "@ai-sdk/google": "3.0.57",
         "@ai-sdk/openai": "3.0.50",
-        "@ai-sdk/react": "3.0.145",
+        "@ai-sdk/react": "3.0.147",
         "@radix-ui/react-dialog": "1.1.15",
         "@radix-ui/react-popover": "1.1.15",
         "@radix-ui/react-slot": "1.2.4",
@@ -56,7 +56,7 @@
 
     "@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.22", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.6" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-B2OTFcRw/Pdka9ZTjpXv6T6qZ6RruRuLokyb8HwW+aoW9ndJ3YasA3/mVswyJw7VMBF8ofXgqvcrCt9KYvFifg=="],
 
-    "@ai-sdk/react": ["@ai-sdk/react@3.0.145", "", { "dependencies": { "@ai-sdk/provider-utils": "4.0.21", "ai": "6.0.143", "swr": "^2.2.5", "throttleit": "2.1.0" }, "peerDependencies": { "react": "^18 || ~19.0.1 || ~19.1.2 || ^19.2.1" } }, "sha512-7EoGTTregQt+wDKC4cmWNnsm5DvfJfWA9+9wigFMGASxujverJICVHDpvCsWK7KBHn7WeohFrk7LziOuuhwCEQ=="],
+    "@ai-sdk/react": ["@ai-sdk/react@3.0.147", "", { "dependencies": { "@ai-sdk/provider-utils": "4.0.22", "ai": "6.0.145", "swr": "^2.2.5", "throttleit": "2.1.0" }, "peerDependencies": { "react": "^18 || ~19.0.1 || ~19.1.2 || ^19.2.1" } }, "sha512-Ig5DVtZt21xwP2cdX9zTtBBQL6upminiwHP4k0a87Z1SY+ZcDY/wv3IRKGEPkM/INuvpEoGQFZtvqElcLtYRpQ=="],
 
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
@@ -398,7 +398,7 @@
 
     "@ai-sdk/gateway/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.21", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.6" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-MtFUYI1/8mgDvRmaBDjbLJPFFrMG777AvSgyIFQtZHIMzm88R/12vYBBpnk7pfiWLFE1DSZzY4WDYzGbKAcmiw=="],
 
-    "@ai-sdk/react/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.21", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.6" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-MtFUYI1/8mgDvRmaBDjbLJPFFrMG777AvSgyIFQtZHIMzm88R/12vYBBpnk7pfiWLFE1DSZzY4WDYzGbKAcmiw=="],
+    "@ai-sdk/react/ai": ["ai@6.0.145", "", { "dependencies": { "@ai-sdk/gateway": "3.0.87", "@ai-sdk/provider": "3.0.8", "@ai-sdk/provider-utils": "4.0.22", "@opentelemetry/api": "1.9.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-RbMiFsPZxE4uf5Hhs8rscp5bIwvjQOrqS5dQGWNVRHGM947QZgkKX7Ih5hto8MK/7xkbtneoOZruZ8oSLO828A=="],
 
     "@radix-ui/react-dialog/@radix-ui/react-slot": ["@radix-ui/react-slot@1.2.3", "", { "dependencies": { "@radix-ui/react-compose-refs": "1.1.2" }, "peerDependencies": { "@types/react": "*", "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A=="],
 
@@ -425,6 +425,8 @@
     "ai/@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@4.0.21", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@standard-schema/spec": "^1.1.0", "eventsource-parser": "^3.0.6" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-MtFUYI1/8mgDvRmaBDjbLJPFFrMG777AvSgyIFQtZHIMzm88R/12vYBBpnk7pfiWLFE1DSZzY4WDYzGbKAcmiw=="],
 
     "next/postcss": ["postcss@8.4.31", "", { "dependencies": { "nanoid": "^3.3.6", "picocolors": "^1.0.0", "source-map-js": "^1.0.2" } }, "sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ=="],
+
+    "@ai-sdk/react/ai/@ai-sdk/gateway": ["@ai-sdk/gateway@3.0.87", "", { "dependencies": { "@ai-sdk/provider": "3.0.8", "@ai-sdk/provider-utils": "4.0.22", "@vercel/oidc": "3.1.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-knLx/VY0u5KAZGgrTorWCTbEnwK3oCCdm8yjxVQm3s14erqVo60SP08dsFWm+xNULPTusftQGVD/l0/hx5QOHg=="],
 
     "@tanstack/valibot-form-adapter/@tanstack/form-core/@tanstack/store": ["@tanstack/store@0.7.7", "", {}, "sha512-xa6pTan1bcaqYDS9BDpSiS63qa6EoDkPN9RsRaxHuDdVDNntzq3xNwR5YKTU/V3SkSyC9T4YVOPh2zRQN0nhIQ=="],
   }
