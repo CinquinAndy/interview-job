@@ -31,7 +31,7 @@
       "devDependencies": {
         "@biomejs/biome": "2.4.14",
         "@tailwindcss/postcss": "4.2.4",
-        "@types/node": "25.6.0",
+        "@types/node": "25.6.2",
         "@types/react": "19.2.14",
         "@types/react-dom": "19.2.3",
         "tailwindcss": "4.2.4",
@@ -266,7 +266,7 @@
 
     "@tanstack/valibot-form-adapter": ["@tanstack/valibot-form-adapter@0.42.1", "", { "dependencies": { "@tanstack/form-core": "0.42.1" }, "peerDependencies": { "valibot": "^1.0.0 || ^1.0.0-beta.4 || ^1.0.0-rc" } }, "sha512-MUWjxGm8ZVDEqW79UET9U0hh87r8hj1oM0dTjCUHnHjvyIHpItk3SDkv4OjBSBoy9Y4kWvCF+0NQ3KM/omdGqg=="],
 
-    "@types/node": ["@types/node@25.6.0", "", { "dependencies": { "undici-types": "~7.19.0" } }, "sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ=="],
+    "@types/node": ["@types/node@25.6.2", "", { "dependencies": { "undici-types": "~7.19.0" } }, "sha512-sokuT28dxf9JT5Kady1fsXOvI4HVpjZa95NKT5y9PNTIrs2AsobR4GFAA90ZG8M+nxVRLysCXsVj6eGC7Vbrlw=="],
 
     "@types/react": ["@types/react@19.2.14", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w=="],
 
