@@ -7,7 +7,7 @@
       "dependencies": {
         "@ai-sdk/anthropic": "3.0.78",
         "@ai-sdk/google": "3.0.74",
-        "@ai-sdk/openai": "3.0.63",
+        "@ai-sdk/openai": "3.0.64",
         "@ai-sdk/react": "3.0.184",
         "@radix-ui/react-dialog": "1.1.15",
         "@radix-ui/react-popover": "1.1.15",
@@ -50,7 +50,7 @@
 
     "@ai-sdk/google": ["@ai-sdk/google@3.0.74", "", { "dependencies": { "@ai-sdk/provider": "3.0.10", "@ai-sdk/provider-utils": "4.0.27" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-LMuDNHYNt4bfDMTE2oxe83ClF0HenCepkBs5Wb0LKBokuN1dxIUirPQHQvi1AuT+80SLyrOZ5c4wPGTVUl2A4w=="],
 
-    "@ai-sdk/openai": ["@ai-sdk/openai@3.0.63", "", { "dependencies": { "@ai-sdk/provider": "3.0.10", "@ai-sdk/provider-utils": "4.0.27" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-4yY/m8a57MNNVoJCsXuNblKf6BO4yuAuLKRX4tzSNffBEBSp1FlcWdPE0Z4FkqUeS0AJhYSSqp0GIiA/cIcDNA=="],
+    "@ai-sdk/openai": ["@ai-sdk/openai@3.0.64", "", { "dependencies": { "@ai-sdk/provider": "3.0.10", "@ai-sdk/provider-utils": "4.0.27" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-epO4iS6QwktaY2PF6uBcPnDTJ3BxPOfsGS7/OEtBe3GtNj7C8h8gMDVtIe5K8W16HNDbn0tbR4dcQfpfs+XVFg=="],
 
     "@ai-sdk/provider": ["@ai-sdk/provider@3.0.10", "", { "dependencies": { "json-schema": "^0.4.0" } }, "sha512-Q3BZ27qfpYqnCYGvE3vt+Qi6LGOF9R5Nmzn+9JoM1lCRsD9mYaIhfJLkSunN48nfGXJ6n+XNV0J/XVpqGQl7Dw=="],
 
