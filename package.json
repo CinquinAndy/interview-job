@@ -19,7 +19,7 @@
 		"@radix-ui/react-popover": "1.1.15",
 		"@radix-ui/react-slot": "1.2.4",
 		"@radix-ui/react-tooltip": "1.2.8",
-		"@tanstack/react-form": "1.32.0",
+		"@tanstack/react-form": "1.32.1",
 		"@tanstack/valibot-form-adapter": "0.42.1",
 		"ai": "6.0.191",
 		"class-variance-authority": "0.7.1",
